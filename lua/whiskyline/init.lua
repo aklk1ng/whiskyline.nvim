@@ -21,13 +21,6 @@ local function default()
     s.sep,
     --
     s.l_left,
-    p.fileicon,
-    p.fileinfo,
-    s.l_right,
-    --
-    s.sep,
-    --
-    s.l_left,
     p.lnumcol,
     s.l_right,
     --
@@ -126,8 +119,16 @@ function whk.setup(opt)
     end,
   })
 
-  local events =
-    { 'DiagnosticChanged', 'ModeChanged', 'BufEnter', 'BufWritePost', 'LspAttach', 'LspDetach' }
+  local events = {
+    'DiagnosticChanged',
+    'ModeChanged',
+    'BufEnter',
+    'BufWritePost',
+    'LspAttach',
+    'LspDetach',
+    'TextChanged',
+    'CursorHold',
+  }
   api.nvim_create_autocmd(events, {
     callback = function(arg)
       vim.schedule(function()

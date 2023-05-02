@@ -204,7 +204,7 @@ function pd.lsp()
   }
 
   if not pd.initialized then
-    result.attr = stl_attr('Function')
+    result.attr = { fg = '#FF8700', bg = 'NONE' }
     result.attr.bold = true
   end
   return result
@@ -306,7 +306,7 @@ end
 
 function pd.lnumcol()
   local result = {
-    stl = '%-4.(%l:%c%) %P',
+    stl = '%-4.(%l:%c%)',
     name = 'linecol',
     event = { 'CursorHold' },
   }
@@ -390,12 +390,15 @@ end
 
 function pd.encoding()
   local result = {
-    stl = '%{&fileencoding?&fileencoding:&encoding}',
+    stl = function()
+      return vim.o.fileencoding:upper()
+    end,
     name = 'filencode',
     event = { 'BufEnter' },
   }
   if not pd.initialized then
     result.attr = stl_attr('Type')
+    result.attr.italic = true
   end
   return result
 end
