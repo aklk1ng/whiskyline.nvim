@@ -21,10 +21,22 @@ local function default()
     s.sep,
     --
     s.l_left,
+    p.filesize,
+    s.l_right,
+    --
+    s.sep,
+    --
+    s.l_left,
     p.lnumcol,
     s.l_right,
     --
     s.sep,
+    --
+    p.modify,
+    --
+    s.sep,
+    --
+    -- p.searchcount,
     --
     p.pad,
     p.diagError,
@@ -51,6 +63,12 @@ local function default()
     --
     s.r_left,
     p.encoding,
+    s.r_right,
+    --
+    s.sep,
+    --
+    s.r_left,
+    p.scrollbar,
     s.r_right,
   }
 end
@@ -128,6 +146,7 @@ function whk.setup(opt)
     'LspDetach',
     'TextChanged',
     'CursorHold',
+    'SearchWrapped',
   }
   api.nvim_create_autocmd(events, {
     callback = function(arg)

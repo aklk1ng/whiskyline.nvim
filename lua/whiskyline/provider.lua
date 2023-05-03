@@ -137,6 +137,70 @@ function pd.fileinfo()
   return result
 end
 
+function pd.filesize()
+  local function get_size()
+    local suffix = { 'b', 'k', 'M', 'G', 'T', 'P', 'E' }
+    local fsize = vim.fn.getfsize(vim.api.nvim_buf_get_name(0))
+    fsize = (fsize < 0 and 0) or fsize
+    if fsize < 1024 then
+      return fsize .. suffix[1]
+    end
+    local i = math.floor((math.log(fsize) / math.log(1024)))
+    return string.format('%.2g%s', fsize / math.pow(1024, i), suffix[i + 1])
+  end
+  local result = {
+    stl = get_size,
+    name = 'filesize',
+    event = { 'BufEnter', 'BufWritePost' },
+  }
+
+  if not pd.initialized then
+    result.attr = { fg = '#f7bb3b', bg = pd.stl_bg() }
+  end
+
+  return result
+end
+
+function pd.modify()
+  local result = {
+    stl = '%m',
+    name = 'modify',
+    event = { 'BufEnter', 'CursorHold' },
+  }
+
+  if not pd.initialized then
+    result.attr = { fg = '#f7bb3b', bg = pd.stl_bg() }
+  end
+
+  return result
+end
+
+function pd.searchcount()
+  local function get_count()
+    if vim.v.hlsearch == 0 then
+      return ''
+    end
+    local search = vim.fn.searchcount()
+    if next(search) == nil then
+      return ''
+    end
+
+    return string.format('[%d/%d]', search.current, math.min(search.total, search.maxcount))
+  end
+
+  local result = {
+    stl = get_count,
+    name = 'searchcount',
+    event = { 'BufEnter', 'CursorHold' },
+  }
+
+  if not pd.initialized then
+    result.attr = { fg = '@keyword', bg = pd.stl_bg() }
+  end
+
+  return result
+end
+
 local function get_progress_messages()
   local new_messages = {}
   local progress_remove = {}
@@ -400,6 +464,40 @@ function pd.encoding()
     result.attr = stl_attr('Type')
     result.attr.italic = true
   end
+  return result
+end
+
+function pd.scrollbar()
+  local function bar()
+    local current_line = vim.fn.line('.')
+    local total_lines = vim.fn.line('$')
+    local chars = { '__', '▁▁', '▂▂', '▃▃', '▄▄', '▅▅', '▆▆', '▇▇', '██' }
+    local index = 1
+
+    if current_line == 1 then
+      return 'Top'
+    elseif current_line == total_lines then
+      return 'Bot'
+    else
+      local line_no_fraction = vim.fn.floor(current_line) / vim.fn.floor(total_lines)
+      index = vim.fn.float2nr(line_no_fraction * #chars)
+      if index == 0 then
+        index = 1
+      end
+      return chars[index]
+    end
+  end
+
+  local result = {
+    stl = bar,
+    name = 'scrollbar',
+    event = { 'BufEnter', 'CursorHold' },
+  }
+
+  if not pd.initialized then
+    result.attr = { fg = '#f7bb3b', bg = pd.stl_bg() }
+  end
+
   return result
 end
 
