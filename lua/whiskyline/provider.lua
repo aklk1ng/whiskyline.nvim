@@ -281,7 +281,7 @@ function pd.branch()
     stl = function()
       local icon = ' '
       local res = gitsigns_data('head')
-      return #res > 0 and icon .. res or 'UNKOWN'
+      return #res > 0 and icon .. res or ''
     end,
     name = 'gitbranch',
     event = { 'GitSignsUpdate' },
