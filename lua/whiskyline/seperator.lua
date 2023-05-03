@@ -14,7 +14,7 @@ end
 
 function sp.l_left()
   return {
-    stl = '',
+    stl = '',
     name = 'sepleft',
     attr = {
       background = 'NONE',
@@ -25,7 +25,7 @@ end
 
 function sp.l_right()
   return {
-    stl = '',
+    stl = '',
     name = 'sepleft',
     attr = {
       background = 'NONE',
@@ -36,7 +36,7 @@ end
 
 function sp.r_left()
   return {
-    stl = '',
+    stl = '',
     name = 'sepleft',
     attr = {
       background = 'NONE',
@@ -47,7 +47,7 @@ end
 
 function sp.r_right()
   return {
-    stl = '',
+    stl = '',
     name = 'sepleft',
     attr = {
       background = 'NONE',
