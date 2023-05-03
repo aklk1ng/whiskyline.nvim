@@ -204,7 +204,7 @@ function pd.lsp()
   }
 
   if not pd.initialized then
-    result.attr = { fg = '#FF8700', bg = 'NONE' }
+    result.attr = { fg = '#FF8700', bg = pd.stl_bg() }
     result.attr.bold = true
   end
   return result
