@@ -169,13 +169,13 @@ function pd.modify()
   }
 
   if not pd.initialized then
-    result.attr = { fg = '#f7bb3b', bg = pd.stl_bg() }
+    result.attr = { fg = '#f7bb3b', bg = 'NONE' }
   end
 
   return result
 end
 
-function pd.searchcount()
+function pd.search_count()
   local function get_count()
     if vim.v.hlsearch == 0 then
       return ''
@@ -190,7 +190,7 @@ function pd.searchcount()
 
   local result = {
     stl = get_count,
-    name = 'searchcount',
+    name = 'search_count',
     event = { 'BufEnter', 'CursorHold' },
   }
 
@@ -464,40 +464,6 @@ function pd.encoding()
     result.attr = stl_attr('Type')
     result.attr.italic = true
   end
-  return result
-end
-
-function pd.scrollbar()
-  local function bar()
-    local current_line = vim.fn.line('.')
-    local total_lines = vim.fn.line('$')
-    local chars = { '__', '▁▁', '▂▂', '▃▃', '▄▄', '▅▅', '▆▆', '▇▇', '██' }
-    local index = 1
-
-    if current_line == 1 then
-      return 'Top'
-    elseif current_line == total_lines then
-      return 'Bot'
-    else
-      local line_no_fraction = vim.fn.floor(current_line) / vim.fn.floor(total_lines)
-      index = vim.fn.float2nr(line_no_fraction * #chars)
-      if index == 0 then
-        index = 1
-      end
-      return chars[index]
-    end
-  end
-
-  local result = {
-    stl = bar,
-    name = 'scrollbar',
-    event = { 'BufEnter', 'CursorHold' },
-  }
-
-  if not pd.initialized then
-    result.attr = { fg = '#f7bb3b', bg = pd.stl_bg() }
-  end
-
   return result
 end
 

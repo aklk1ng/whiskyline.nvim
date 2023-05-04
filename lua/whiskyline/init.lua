@@ -36,7 +36,7 @@ local function default()
     --
     s.sep,
     --
-    -- p.searchcount,
+    -- p.search_count,
     --
     p.pad,
     p.diagError,
@@ -63,12 +63,6 @@ local function default()
     --
     s.r_left,
     p.encoding,
-    s.r_right,
-    --
-    s.sep,
-    --
-    s.r_left,
-    p.scrollbar,
     s.r_right,
   }
 end
