@@ -27,6 +27,13 @@ local function default()
     s.sep,
     --
     s.l_left,
+    p.fileicon,
+    p.fileinfo,
+    s.l_right,
+    --
+    s.sep,
+    --
+    s.l_left,
     p.lnumcol,
     s.l_right,
     --
