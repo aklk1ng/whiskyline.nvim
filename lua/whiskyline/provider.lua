@@ -122,7 +122,7 @@ function pd.fileinfo()
     if #fname == 0 then
       fname = 'UNKNOWN'
     end
-    return fname .. '%m'
+    return fname
   end
   local result = {
     stl = stl_file,
