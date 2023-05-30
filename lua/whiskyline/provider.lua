@@ -182,9 +182,10 @@ function pd.search_count()
     if vim.v.hlsearch == 0 then
       return ''
     end
-    local search = vim.fn.searchcount({ maxcount = 999, timeout = 100 })
-
-    return string.format('[%d/%d]', search.current, math.min(search.total, search.maxcount))
+    local ok, search = pcall(vim.fn.searchcount)
+    if ok and search.total then
+      return string.format('[%d/%d]', search.current, math.min(search.total, search.maxcount))
+    end
   end
 
   local result = {
