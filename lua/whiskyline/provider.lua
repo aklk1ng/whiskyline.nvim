@@ -177,30 +177,6 @@ function pd.modify()
   return result
 end
 
-function pd.search_count()
-  local function get_count()
-    if vim.v.hlsearch == 0 then
-      return ''
-    end
-    local ok, search = pcall(vim.fn.searchcount)
-    if ok and search.total then
-      return string.format('[%d/%d]', search.current, math.min(search.total, search.maxcount))
-    end
-  end
-
-  local result = {
-    stl = get_count,
-    name = 'search_count',
-    event = { 'BufEnter', 'CursorHold' },
-  }
-
-  if not pd.initialized then
-    result.attr = { fg = '@keyword', bg = pd.stl_bg() }
-  end
-
-  return result
-end
-
 local function get_progress_messages()
   local new_messages = {}
   local progress_remove = {}

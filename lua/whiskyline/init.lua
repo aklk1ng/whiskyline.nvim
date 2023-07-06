@@ -43,10 +43,6 @@ local function default()
     --
     s.sep,
     --
-    -- s.l_left,
-    -- p.search_count,
-    -- s.l_right,
-    --
     p.pad,
     p.diagError,
     p.diagWarn,
