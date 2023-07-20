@@ -181,7 +181,7 @@ local function get_progress_messages()
   local new_messages = {}
   local progress_remove = {}
 
-  for _, client in ipairs(vim.lsp.get_active_clients()) do
+  for _, client in ipairs(vim.lsp.get_clients()) do
     local messages = client.messages
     local data = messages
     for token, ctx in pairs(data.progress) do
@@ -229,7 +229,7 @@ function pd.lsp()
     end
 
     if #msg == 0 and event ~= 'LspDetach' then
-      local client = vim.lsp.get_active_clients({ bufnr = 0 })
+      local client = vim.lsp.get_clients({ bufnr = 0 })
       if #client ~= 0 then
         msg = client[1].name
       end
