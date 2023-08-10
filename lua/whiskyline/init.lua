@@ -15,20 +15,15 @@ local function default()
   return {
     --
     s.l_left,
-    p.mode,
+    p.fileicon,
+    p.fileinfo,
+
     s.l_right,
     --
     s.sep,
     --
     s.l_left,
     p.filesize,
-    s.l_right,
-    --
-    s.sep,
-    --
-    s.l_left,
-    p.fileicon,
-    p.fileinfo,
     s.l_right,
     --
     s.sep,
