@@ -86,7 +86,7 @@ function pd.filesize()
   }
 
   if not pd.initialized then
-    result.attr = { fg = '#f7bb3b', bg = pd.stl_bg() }
+    result.attr = stl_attr('WarningMsg')
   end
 
   return result
@@ -100,7 +100,7 @@ function pd.modify()
   }
 
   if not pd.initialized then
-    result.attr = { fg = '#f7bb3b', bg = 'NONE' }
+    result.attr = stl_attr('WarningMsg')
   end
 
   return result
@@ -173,7 +173,8 @@ function pd.lsp()
   }
 
   if not pd.initialized then
-    result.attr = { fg = '#FF8700', bg = pd.stl_bg() }
+    result.attr = stl_attr('Function')
+
     result.attr.bold = true
   end
   return result
@@ -281,7 +282,7 @@ function pd.lnumcol()
   }
 
   if not pd.initialized then
-    result.attr = stl_attr('Label')
+    result.attr = stl_attr('Operator')
   end
   return result
 end
