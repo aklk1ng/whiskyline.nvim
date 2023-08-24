@@ -17,6 +17,7 @@ local function default()
     s.l_left(),
     p.fileicon(),
     p.fileinfo(),
+    p.modify(),
 
     s.l_right(),
     --
@@ -31,10 +32,6 @@ local function default()
     s.l_left(),
     p.lnumcol(),
     s.l_right(),
-    --
-    s.sep(),
-    --
-    p.modify(),
     --
     s.sep(),
     --
@@ -89,6 +86,7 @@ local function default()
   return comps, e, pieces
 end
 
+local keys = { 2, 8, 34 }
 local function render(comps, events, pieces)
   return co.create(function(args)
     while true do
@@ -100,8 +98,8 @@ local function render(comps, events, pieces)
       -- because setup use a timer to defer parse and render this will cause missing
       -- `BufEnter` event so add a safe check
       -- when running `nvim file`
-      for idx, _ in ipairs(pieces) do
-        if #pieces[idx] == 0 then
+      for _, idx in ipairs(keys) do
+        if comps[idx] and #pieces[idx] == 0 then
           pieces[idx] = stl_format(comps[idx].name, comps[idx].stl(args))
         end
       end
