@@ -1,7 +1,5 @@
-local api, uv = vim.api, vim.loop
+local api, uv, lsp = vim.api, vim.uv, vim.lsp
 local pd = {}
-
-pd.initialized = false
 
 function pd.stl_bg()
   return require('whiskyline').bg
@@ -20,34 +18,23 @@ local function path_sep()
   return uv.os_uname().sysname == 'Windows_NT' and '\\' or '/'
 end
 
-local resolve
-
-local function init_devicon()
-  if resolve then
-    return
-  end
-  local ok, devicon = pcall(require, 'nvim-web-devicons')
-  if not ok then
-    return
-  end
-  resolve = devicon
-end
-
 function pd.fileicon()
-  if not resolve then
-    init_devicon()
-  end
+  local ok, devicon = pcall(require, 'nvim-web-devicons')
+  local icon, color
 
-  local icon, color = resolve.get_icon_color_by_filetype(vim.bo.filetype, { default = true })
   return {
     stl = function()
-      return icon .. ' '
+      if ok then
+        icon, color = devicon.get_icon_color_by_filetype(vim.bo.filetype, { default = true })
+        api.nvim_set_hl(0, 'Whiskyfileicon', { bg = pd.stl_bg(), fg = color })
+        return icon .. ' '
+      end
+      return ''
     end,
     name = 'fileicon',
     event = { 'BufEnter' },
     attr = {
       bg = pd.stl_bg(),
-      fg = color,
     },
   }
 end
@@ -59,9 +46,7 @@ function pd.fileinfo()
     event = { 'BufEnter' },
   }
 
-  if not pd.initialized then
-    result.attr = stl_attr('Normal')
-  end
+  result.attr = stl_attr('Normal')
 
   return result
 end
@@ -85,9 +70,7 @@ function pd.filesize()
     event = { 'BufEnter', 'BufWritePost' },
   }
 
-  if not pd.initialized then
-    result.attr = stl_attr('WarningMsg')
-  end
+  result.attr = stl_attr('WarningMsg')
 
   return result
 end
@@ -96,72 +79,30 @@ function pd.modify()
   local result = {
     stl = '%m',
     name = 'modify',
-    event = { 'BufEnter', 'CursorHold' },
+    event = { 'BufModifiedSet' },
   }
 
-  if not pd.initialized then
-    result.attr = stl_attr('WarningMsg', true)
-  end
+  result.attr = stl_attr('WarningMsg')
 
   return result
 end
 
-local function get_progress_messages()
-  local new_messages = {}
-  local progress_remove = {}
-
-  for _, client in ipairs(vim.lsp.get_clients()) do
-    local messages = client.messages
-    local data = messages
-    for token, ctx in pairs(data.progress) do
-      local new_report = {
-        name = data.name,
-        title = ctx.title or 'empty title',
-        message = ctx.message,
-        percentage = ctx.percentage,
-        done = ctx.done,
-        progress = true,
-      }
-      table.insert(new_messages, new_report)
-
-      if ctx.done then
-        table.insert(progress_remove, { client = client, token = token })
-      end
-    end
-  end
-
-  if not vim.tbl_isempty(progress_remove) then
-    for _, item in ipairs(progress_remove) do
-      item.client.messages.progress[item.token] = nil
-    end
-    return {}
-  end
-
-  return new_messages
-end
-
 function pd.lsp()
-  local function lsp_stl(event)
-    local new_messages = get_progress_messages()
-    local msg = ''
-
-    for i, item in ipairs(new_messages) do
-      if i == #new_messages then
-        msg = item.title
-        if item.message then
-          msg = msg .. ' ' .. item.message
-        end
-        if item.percentage then
-          msg = msg .. ' ' .. item.percentage .. '%'
-        end
+  local function lsp_stl(args)
+    local client = lsp.get_client_by_id(args.data.client_id)
+    local msg = client and client.name or ''
+    if args.data.result then
+      local val = args.data.result.value
+      msg = val.title
+        .. ' '
+        .. (val.message and val.message .. ' ' or '')
+        .. (val.percentage and val.percentage .. '%' or '')
+      if not val.message or val.kind == 'end' then
+        ---@diagnostic disable-next-line: need-check-nil
+        msg = client.name
       end
-    end
-
-    if #msg == 0 and event ~= 'LspDetach' then
-      local client = vim.lsp.get_clients({ bufnr = 0 })
-      if #client ~= 0 then
-        msg = client[1].name
-      end
+    elseif args.event == 'LspDetach' then
+      msg = ''
     end
     return '%.40{"' .. msg .. '"}'
   end
@@ -169,14 +110,11 @@ function pd.lsp()
   local result = {
     stl = lsp_stl,
     name = 'Lsp',
-    event = { 'LspProgressUpdate', 'LspAttach', 'LspDetach' },
+    event = { 'LspProgress', 'LspAttach', 'LspDetach' },
   }
 
-  if not pd.initialized then
-    result.attr = stl_attr('Function')
-
-    result.attr.bold = true
-  end
+  result.attr = stl_attr('Function')
+  result.attr.bold = true
   return result
 end
 
@@ -206,11 +144,9 @@ function pd.gitadd()
       return #res > 0 and git_icons('added') .. res or ''
     end,
     name = 'gitadd',
-    event = { 'GitSignsUpdate' },
+    event = { 'User GitSignsUpdate' },
   }
-  if not pd.initialized then
-    result.attr = stl_attr('DiffAdd')
-  end
+  result.attr = stl_attr('DiffAdd')
   return result
 end
 
@@ -221,12 +157,10 @@ function pd.gitchange()
       return #res > 0 and git_icons('changed') .. res or ''
     end,
     name = 'gitchange',
-    event = { 'GitSignsUpdate' },
+    event = { 'User GitSignsUpdate' },
   }
 
-  if not pd.initialized then
-    result.attr = stl_attr('DiffChange')
-  end
+  result.attr = stl_attr('DiffChange')
   return result
 end
 
@@ -237,12 +171,10 @@ function pd.gitdelete()
       return #res > 0 and git_icons('deleted') .. res or ''
     end,
     name = 'gitdelete',
-    event = { 'GitSignsUpdate' },
+    event = { 'User GitSignsUpdate' },
   }
 
-  if not pd.initialized then
-    result.attr = stl_attr('DiffDelete')
-  end
+  result.attr = stl_attr('DiffDelete')
   return result
 end
 
@@ -254,12 +186,10 @@ function pd.branch()
       return #res > 0 and icon .. res or ''
     end,
     name = 'gitbranch',
-    event = { 'GitSignsUpdate' },
+    event = { 'User GitSignsUpdate' },
   }
-  if not pd.initialized then
-    result.attr = stl_attr('Include')
-    result.attr.bold = true
-  end
+  result.attr = stl_attr('Include')
+  result.attr.bold = true
   return result
 end
 
@@ -281,9 +211,7 @@ function pd.lnumcol()
     event = { 'CursorHold' },
   }
 
-  if not pd.initialized then
-    result.attr = stl_attr('Operator')
-  end
+  result.attr = stl_attr('Operator')
   return result
 end
 
@@ -310,9 +238,7 @@ function pd.diagError()
     name = 'diagError',
     event = { 'DiagnosticChanged', 'BufEnter' },
   }
-  if not pd.initialized then
-    result.attr = stl_attr('DiagnosticError', true)
-  end
+  result.attr = stl_attr('DiagnosticError', true)
   return result
 end
 
@@ -324,9 +250,7 @@ function pd.diagWarn()
     name = 'diagWarn',
     event = { 'DiagnosticChanged', 'BufEnter' },
   }
-  if not pd.initialized then
-    result.attr = stl_attr('DiagnosticWarn', true)
-  end
+  result.attr = stl_attr('DiagnosticWarn', true)
   return result
 end
 
@@ -338,9 +262,7 @@ function pd.diagInfo()
     name = 'diaginfo',
     event = { 'DiagnosticChanged', 'BufEnter' },
   }
-  if not pd.initialized then
-    result.attr = stl_attr('DiagnosticInfo', true)
-  end
+  result.attr = stl_attr('DiagnosticInfo', true)
   return result
 end
 
@@ -352,24 +274,20 @@ function pd.diagHint()
     name = 'diaghint',
     event = { 'DiagnosticChanged', 'BufEnter' },
   }
-  if not pd.initialized then
-    result.attr = stl_attr('DiagnosticHint', true)
-  end
+  result.attr = stl_attr('DiagnosticHint', true)
   return result
 end
 
 function pd.encoding()
   local result = {
     stl = function()
-      return vim.o.fileencoding:upper()
+      return vim.bo.fileencoding:upper()
     end,
     name = 'filencode',
     event = { 'BufEnter' },
   }
-  if not pd.initialized then
-    result.attr = stl_attr('Type')
-    result.attr.italic = true
-  end
+  result.attr = stl_attr('Type')
+  result.attr.italic = true
   return result
 end
 

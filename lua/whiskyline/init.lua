@@ -12,143 +12,133 @@ end
 local function default()
   local p = require('whiskyline.provider')
   local s = require('whiskyline.seperator')
-  return {
-    --
-    s.l_left,
-    p.fileicon,
-    p.fileinfo,
 
-    s.l_right,
+  local comps = {
+    s.l_left(),
+    p.fileicon(),
+    p.fileinfo(),
+
+    s.l_right(),
     --
-    s.sep,
+    s.sep(),
     --
-    s.l_left,
-    p.filesize,
-    s.l_right,
+    s.l_left(),
+    p.filesize(),
+    s.l_right(),
     --
-    s.sep,
+    s.sep(),
     --
-    s.l_left,
-    p.lnumcol,
-    s.l_right,
+    s.l_left(),
+    p.lnumcol(),
+    s.l_right(),
     --
-    s.sep,
+    s.sep(),
     --
-    p.modify,
+    p.modify(),
     --
-    s.sep,
+    s.sep(),
     --
-    p.pad,
-    p.diagError,
-    p.diagWarn,
-    p.diagInfo,
-    p.diagHint,
-    p.pad,
+    p.pad(),
+    p.diagError(),
+    p.diagWarn(),
+    p.diagInfo(),
+    p.diagHint(),
+    p.pad(),
     --
-    s.sep,
+    s.sep(),
     --
-    s.r_left,
-    p.lsp,
-    s.r_right,
-    s.sep,
+    s.r_left(),
+    p.lsp(),
+    s.r_right(),
+    s.sep(),
     --
-    s.r_left,
-    p.gitadd,
-    p.gitchange,
-    p.gitdelete,
-    p.branch,
-    s.r_right,
+    s.r_left(),
+    p.gitadd(),
+    p.gitchange(),
+    p.gitdelete(),
+    p.branch(),
+    s.r_right(),
     --
-    s.sep,
+    s.sep(),
     --
-    s.r_left,
-    p.encoding,
-    s.r_right,
+    s.r_left(),
+    p.encoding(),
+    s.r_right(),
   }
-end
-
-local function whk_init(event, pieces)
-  whk.cache = {}
-  for i, e in ipairs(whk.elements) do
-    local res = e()
-
-    if res.event and vim.tbl_contains(res.event, event) then
-      local val = type(res.stl) == 'function' and res.stl() or res.stl
-      pieces[#pieces + 1] = stl_format(res.name, val)
-    elseif type(res.stl) == 'string' then
-      pieces[#pieces + 1] = stl_format(res.name, res.stl)
-    else
-      pieces[#pieces + 1] = stl_format(res.name, '')
-    end
-
-    if res.attr then
-      stl_hl(res.name, res.attr)
-    end
-
-    whk.cache[i] = {
-      event = res.event,
-      name = res.name,
-      stl = res.stl,
-    }
-  end
-  require('whiskyline.provider').initialized = true
-  return table.concat(pieces, '')
-end
-
-local stl_render = co.create(function(event)
-  local pieces = {}
-  while true do
-    if not whk.cache then
-      whk_init(event, pieces)
-    else
-      for i, item in ipairs(whk.cache) do
-        if item.event and vim.tbl_contains(item.event, event) and type(item.stl) == 'function' then
-          local comp = whk.elements[i]
-          local res = comp()
-          if res.attr then
-            stl_hl(item.name, res.attr)
+  local e, pieces = {}, {}
+  vim
+    .iter(ipairs(comps))
+    :map(function(key, item)
+      if type(item.stl) == 'string' then
+        pieces[#pieces + 1] = stl_format(item.name, item.stl)
+      else
+        pieces[#pieces + 1] = item.default and stl_format(item.name, item.default) or ''
+        for _, event in ipairs({ unpack(item.event or {}) }) do
+          if not e[event] then
+            e[event] = {}
           end
-          pieces[i] = stl_format(item.name, res.stl(event))
+          e[event][#e[event] + 1] = key
         end
       end
+
+      if item.attr and item.name then
+        stl_hl(item.name, item.attr)
+      end
+    end)
+    :totable()
+  return comps, e, pieces
+end
+
+local function render(comps, events, pieces)
+  return co.create(function(args)
+    while true do
+      local event = args.event == 'User' and args.event .. ' ' .. args.match or args.event
+      for _, idx in ipairs(events[event]) do
+        pieces[idx] = stl_format(comps[idx].name, comps[idx].stl(args))
+      end
+
+      -- because setup use a timer to defer parse and render this will cause missing
+      -- `BufEnter` event so add a safe check
+      -- when running `nvim file`
+      for idx, _ in ipairs(pieces) do
+        if #pieces[idx] == 0 then
+          pieces[idx] = stl_format(comps[idx].name, comps[idx].stl(args))
+        end
+      end
+
+      vim.opt.stl = table.concat(pieces)
+      args = co.yield()
     end
-    vim.opt.stl = table.concat(pieces)
-    event = co.yield()
-  end
-end)
+  end)
+end
 
 function whk.setup(opt)
   opt = opt or { bg = '#444444' }
   whk.bg = opt.bg
-  whk.elements = default()
 
-  api.nvim_create_autocmd({ 'User' }, {
-    pattern = { 'LspProgressUpdate', 'GitSignsUpdate' },
-    callback = function(arg)
-      vim.schedule(function()
-        co.resume(stl_render, arg.match)
-      end)
-    end,
-  })
+  vim.defer_fn(function()
+    local comps, events, pieces = default()
+    local stl_render = render(comps, events, pieces)
+    for _, e in ipairs(vim.tbl_keys(events)) do
+      local tmp = e
+      local pattern
+      if e:find('User') then
+        pattern = vim.split(e, '%s')[2]
+      end
 
-  local events = {
-    'DiagnosticChanged',
-    'ModeChanged',
-    'BufEnter',
-    'BufWritePost',
-    'LspAttach',
-    'LspDetach',
-    'TextChanged',
-    'CursorHold',
-    'SearchWrapped',
-  }
-  api.nvim_create_autocmd(events, {
-    callback = function(arg)
-      vim.schedule(function()
-        co.resume(stl_render, arg.event)
-      end)
-    end,
-  })
+      api.nvim_create_autocmd(tmp, {
+        pattern = pattern,
+        callback = function(args)
+          vim.schedule(function()
+            local ok, res = co.resume(stl_render, args)
+            if not ok then
+              vim.notify('[Whisky] render failed ' .. res, vim.log.levels.ERROR)
+            end
+          end)
+        end,
+      })
+    end
+  end, 0)
 end
 
 return whk
