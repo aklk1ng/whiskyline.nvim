@@ -100,7 +100,7 @@ function pd.modify()
   }
 
   if not pd.initialized then
-    result.attr = stl_attr('WarningMsg')
+    result.attr = stl_attr('WarningMsg', true)
   end
 
   return result
