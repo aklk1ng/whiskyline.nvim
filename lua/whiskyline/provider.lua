@@ -287,7 +287,6 @@ function pd.encoding()
     event = { 'BufEnter' },
   }
   result.attr = stl_attr('Type')
-  result.attr.italic = true
   return result
 end
 
