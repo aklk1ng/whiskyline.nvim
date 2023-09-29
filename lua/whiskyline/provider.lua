@@ -114,7 +114,6 @@ function pd.lsp()
   }
 
   result.attr = stl_attr('Function')
-  result.attr.bold = true
   return result
 end
 
