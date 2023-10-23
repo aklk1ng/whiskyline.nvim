@@ -210,7 +210,7 @@ function pd.lnumcol()
     event = { 'CursorHold' },
   }
 
-  result.attr = stl_attr('Operator')
+  result.attr = stl_attr('Number')
   return result
 end
 
