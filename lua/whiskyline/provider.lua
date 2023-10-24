@@ -14,10 +14,6 @@ local function stl_attr(group, trans)
   }
 end
 
-local function path_sep()
-  return uv.os_uname().sysname == 'Windows_NT' and '\\' or '/'
-end
-
 function pd.fileicon()
   local ok, devicon = pcall(require, 'nvim-web-devicons')
   local icon, color
