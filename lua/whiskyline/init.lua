@@ -35,11 +35,12 @@ local function default()
     --
     s.sep(),
     --
-    p.pad(),
     p.diagError(),
     p.diagWarn(),
     p.diagInfo(),
     p.diagHint(),
+    --
+    p.pad(),
     p.pad(),
     --
     s.sep(),
