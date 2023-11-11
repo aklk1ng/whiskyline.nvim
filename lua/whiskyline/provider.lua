@@ -42,7 +42,7 @@ function pd.fileinfo()
     event = { 'BufEnter' },
   }
 
-  result.attr = stl_attr('Normal')
+  result.attr = stl_attr('@variable')
 
   return result
 end
@@ -206,7 +206,7 @@ function pd.lnumcol()
     event = { 'CursorHold' },
   }
 
-  result.attr = stl_attr('Number')
+  result.attr = stl_attr('Operator')
   return result
 end
 
