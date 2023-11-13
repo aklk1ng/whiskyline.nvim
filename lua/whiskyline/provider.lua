@@ -83,6 +83,29 @@ function pd.modify()
   return result
 end
 
+function pd.search()
+  local function res()
+    if vim.v.hlsearch == 0 then
+      return ''
+    end
+    local ok, search = pcall(vim.fn.searchcount)
+
+    if ok and search.total then
+      local current = search.current
+      local count = math.min(search.total, search.maxcount)
+      return string.format('[%d-%d] ', current, count)
+    end
+  end
+  local result = {
+    stl = res,
+    name = 'search',
+    event = { 'CursorHold' },
+  }
+  result.attr = stl_attr('Repeat', true)
+
+  return result
+end
+
 function pd.lsp()
   local function lsp_stl(args)
     local client = lsp.get_client_by_id(args.data.client_id)
