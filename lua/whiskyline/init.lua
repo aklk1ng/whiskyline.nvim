@@ -88,7 +88,6 @@ local function default()
   return comps, e, pieces
 end
 
-local keys = { 2, 8, 34 }
 local function render(comps, events, pieces)
   return co.create(function(args)
     while true do
@@ -99,12 +98,14 @@ local function render(comps, events, pieces)
 
       -- because setup use a timer to defer parse and render this will cause missing
       -- `BufEnter` event so add a safe check
-      -- when running `nvim file`
-      for _, idx in ipairs(keys) do
-        if comps[idx] and #pieces[idx] == 0 then
-          pieces[idx] = stl_format(comps[idx].name, comps[idx].stl(args))
-        end
-      end
+      -- NVIM v0.10.0-dev-1571+gba58c6f8a
+
+      -- local keys = { 2, 8, 34 }
+      -- for _, idx in ipairs(keys) do
+      --   if comps[idx] and #pieces[idx] == 0 then
+      --     pieces[idx] = stl_format(comps[idx].name, comps[idx].stl(args))
+      --   end
+      -- end
 
       vim.opt.stl = table.concat(pieces)
       args = co.yield()
