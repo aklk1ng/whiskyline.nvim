@@ -296,16 +296,4 @@ function pd.diagHint()
   return result
 end
 
-function pd.encoding()
-  local result = {
-    stl = function()
-      return vim.bo.fileencoding:upper()
-    end,
-    name = 'filencode',
-    event = { 'BufEnter' },
-  }
-  result.attr = stl_attr('Type')
-  return result
-end
-
 return pd

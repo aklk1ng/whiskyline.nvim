@@ -57,12 +57,6 @@ local function default()
     p.gitdelete(),
     p.branch(),
     s.r_right(),
-    --
-    s.sep(),
-    --
-    s.r_left(),
-    p.encoding(),
-    s.r_right(),
   }
   local e, pieces = {}, {}
   vim
