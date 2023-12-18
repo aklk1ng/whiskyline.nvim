@@ -35,6 +35,8 @@ local function default()
     --
     s.sep(),
     --
+    p.search(),
+    s.sep(),
     p.diagError(),
     p.diagWarn(),
     p.diagInfo(),
