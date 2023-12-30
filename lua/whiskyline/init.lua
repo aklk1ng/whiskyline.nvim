@@ -15,7 +15,6 @@ local function default()
 
   local comps = {
     s.l_left(),
-    p.fileicon(),
     p.fileinfo(),
     p.modify(),
 

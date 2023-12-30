@@ -1,4 +1,4 @@
-local api, uv, lsp = vim.api, vim.uv, vim.lsp
+local api, lsp = vim.api, vim.lsp
 local pd = {}
 
 function pd.stl_bg()
@@ -6,32 +6,11 @@ function pd.stl_bg()
 end
 
 local function stl_attr(group, trans)
-  local color = api.nvim_get_hl_by_name(group, true)
+  local color = api.nvim_get_hl(0, { name = group, link = false })
   trans = trans or false
   return {
     bg = trans and 'NONE' or pd.stl_bg(),
-    fg = color.foreground,
-  }
-end
-
-function pd.fileicon()
-  local ok, devicon = pcall(require, 'nvim-web-devicons')
-  local icon, color
-
-  return {
-    stl = function()
-      if ok then
-        icon, color = devicon.get_icon_color_by_filetype(vim.bo.filetype, { default = true })
-        api.nvim_set_hl(0, 'Whiskyfileicon', { bg = pd.stl_bg(), fg = color })
-        return icon .. ' '
-      end
-      return ''
-    end,
-    name = 'fileicon',
-    event = { 'BufEnter' },
-    attr = {
-      bg = pd.stl_bg(),
-    },
+    fg = color.fg,
   }
 end
 
@@ -143,20 +122,11 @@ local function gitsigns_data(type)
   return val
 end
 
-local function git_icons(type)
-  local tbl = {
-    ['added'] = ' ',
-    ['changed'] = ' ',
-    ['deleted'] = ' ',
-  }
-  return tbl[type]
-end
-
 function pd.gitadd()
   local result = {
     stl = function()
       local res = gitsigns_data('added')
-      return #res > 0 and git_icons('added') .. res or ''
+      return #res > 0 and '+' .. res or ''
     end,
     name = 'gitadd',
     event = { 'User GitSignsUpdate' },
@@ -169,7 +139,7 @@ function pd.gitchange()
   local result = {
     stl = function()
       local res = gitsigns_data('changed')
-      return #res > 0 and git_icons('changed') .. res or ''
+      return #res > 0 and '~' .. res or ''
     end,
     name = 'gitchange',
     event = { 'User GitSignsUpdate' },
@@ -183,7 +153,7 @@ function pd.gitdelete()
   local result = {
     stl = function()
       local res = gitsigns_data('removed')
-      return #res > 0 and git_icons('deleted') .. res or ''
+      return #res > 0 and '-' .. res or ''
     end,
     name = 'gitdelete',
     event = { 'User GitSignsUpdate' },
@@ -235,14 +205,8 @@ local function diagnostic_info(severity)
     return ''
   end
 
-  local signs = {
-    ' ',
-    ' ',
-    ' ',
-    ' ',
-  }
   local count = #vim.diagnostic.get(0, { severity = severity })
-  return count == 0 and '' or signs[severity] .. tostring(count) .. ' '
+  return count == 0 and '' or ' ' .. tostring(count) .. ' '
 end
 
 function pd.diagError()
