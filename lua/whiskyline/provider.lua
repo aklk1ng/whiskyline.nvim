@@ -205,8 +205,14 @@ local function diagnostic_info(severity)
     return ''
   end
 
+  local tbl = {
+    'E',
+    'W',
+    'I',
+    'H',
+  }
   local count = #vim.diagnostic.get(0, { severity = severity })
-  return count == 0 and '' or ' ' .. tostring(count) .. ' '
+  return count == 0 and '' or tbl[severity] .. tostring(count) .. ' '
 end
 
 function pd.diagError()
