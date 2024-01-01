@@ -14,14 +14,25 @@ local function stl_attr(group, trans)
   }
 end
 
+function pd.sep()
+  return {
+    stl = ' ',
+    name = 'sep',
+    attr = {
+      background = 'NONE',
+      foreground = 'NONE',
+    },
+  }
+end
+
 function pd.fileinfo()
   local result = {
-    stl = '%t',
+    stl = '%f%r%m',
     name = 'fileinfo',
     event = { 'BufEnter' },
   }
 
-  result.attr = stl_attr('@variable')
+  result.attr = stl_attr('Normal')
 
   return result
 end
@@ -43,18 +54,6 @@ function pd.filesize()
     stl = get_size,
     name = 'filesize',
     event = { 'BufEnter', 'BufWritePost' },
-  }
-
-  result.attr = stl_attr('WarningMsg')
-
-  return result
-end
-
-function pd.modify()
-  local result = {
-    stl = '%m',
-    name = 'modify',
-    event = { 'BufModifiedSet' },
   }
 
   result.attr = stl_attr('WarningMsg')

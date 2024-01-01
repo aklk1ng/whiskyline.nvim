@@ -11,52 +11,29 @@ end
 
 local function default()
   local p = require('whiskyline.provider')
-  local s = require('whiskyline.seperator')
 
   local comps = {
-    s.l_left(),
     p.fileinfo(),
-    p.modify(),
-
-    s.l_right(),
-    --
-    s.sep(),
-    --
-    s.l_left(),
+    p.sep(),
     p.filesize(),
-    s.l_right(),
-    --
-    s.sep(),
-    --
-    s.l_left(),
-    p.lnumcol(),
-    s.l_right(),
-    --
-    s.sep(),
-    --
-    p.search(),
-    s.sep(),
+    p.sep(),
+    p.lsp(),
+    p.sep(),
     p.diagError(),
     p.diagWarn(),
     p.diagInfo(),
     p.diagHint(),
-    --
+    p.search(),
+
     p.pad(),
     p.pad(),
-    --
-    s.sep(),
-    --
-    s.r_left(),
-    p.lsp(),
-    s.r_right(),
-    s.sep(),
-    --
-    s.r_left(),
+
+    p.lnumcol(),
+    p.sep(),
     p.gitadd(),
     p.gitchange(),
     p.gitdelete(),
     p.branch(),
-    s.r_right(),
   }
   local e, pieces = {}, {}
   vim
@@ -92,14 +69,13 @@ local function render(comps, events, pieces)
 
       -- because setup use a timer to defer parse and render this will cause missing
       -- `BufEnter` event so add a safe check
-      -- NVIM v0.10.0-dev-1571+gba58c6f8a
 
-      -- local keys = { 2, 8, 34 }
-      -- for _, idx in ipairs(keys) do
-      --   if comps[idx] and #pieces[idx] == 0 then
-      --     pieces[idx] = stl_format(comps[idx].name, comps[idx].stl(args))
-      --   end
-      -- end
+      local keys = { 3 }
+      for _, idx in ipairs(keys) do
+        if comps[idx] and #pieces[idx] == 0 then
+          pieces[idx] = stl_format(comps[idx].name, comps[idx].stl(args))
+        end
+      end
 
       vim.opt.stl = table.concat(pieces)
       args = co.yield()
@@ -107,32 +83,33 @@ local function render(comps, events, pieces)
   end)
 end
 
-function whk.setup(opt)
-  opt = opt or { bg = '#3e4443' }
-  whk.bg = opt.bg
+function whk.setup()
+  -- move to next event loop
+  -- that mean must lazyload this plugin
+  vim.defer_fn(function()
+    local comps, events, pieces = default()
+    local stl_render = render(comps, events, pieces)
+    for _, e in ipairs(vim.tbl_keys(events)) do
+      local tmp = e
+      local pattern
+      if e:find('User') then
+        pattern = vim.split(e, '%s')[2]
+        tmp = 'User'
+      end
 
-  local comps, events, pieces = default()
-  local stl_render = render(comps, events, pieces)
-  for _, e in ipairs(vim.tbl_keys(events)) do
-    local tmp = e
-    local pattern
-    if e:find('User') then
-      pattern = vim.split(e, '%s')[2]
-      tmp = 'User'
+      api.nvim_create_autocmd(tmp, {
+        pattern = pattern,
+        callback = function(args)
+          vim.schedule(function()
+            local ok, res = co.resume(stl_render, args)
+            if not ok then
+              vim.notify('[Whisky] render failed ' .. res, vim.log.levels.ERROR)
+            end
+          end)
+        end,
+      })
     end
-
-    api.nvim_create_autocmd(tmp, {
-      pattern = pattern,
-      callback = function(args)
-        vim.schedule(function()
-          local ok, res = co.resume(stl_render, args)
-          if not ok then
-            vim.notify('[Whisky] render failed ' .. res, vim.log.levels.ERROR)
-          end
-        end)
-      end,
-    })
-  end
+  end, 0)
 end
 
 return whk
