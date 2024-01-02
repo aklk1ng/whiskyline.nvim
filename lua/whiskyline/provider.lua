@@ -2,7 +2,12 @@ local api, lsp = vim.api, vim.lsp
 local pd = {}
 
 function pd.stl_bg()
-  return require('whiskyline').bg
+  local res = api.nvim_get_hl(0, { name = 'StatusLine' })
+  if vim.tbl_isempty(res) then
+    vim.notify('[Whisky] colorschem missing StatusLine config')
+    return
+  end
+  return res.bg
 end
 
 local function stl_attr(group, trans)
@@ -27,7 +32,7 @@ end
 
 function pd.fileinfo()
   local result = {
-    stl = '%f%r%m',
+    stl = '%t%r%m',
     name = 'fileinfo',
     event = { 'BufEnter' },
   }
@@ -195,7 +200,7 @@ function pd.lnumcol()
     event = { 'CursorHold' },
   }
 
-  result.attr = stl_attr('@variable.builtin')
+  result.attr = stl_attr('Number')
   return result
 end
 
@@ -210,8 +215,8 @@ local function diagnostic_info(severity)
     'I',
     'H',
   }
-  local count = #vim.diagnostic.get(0, { severity = severity })
-  return count == 0 and '' or tbl[severity] .. tostring(count) .. ' '
+  local count = vim.diagnostic.count(0)[severity]
+  return not count and '' or tbl[severity] .. tostring(count) .. ' '
 end
 
 function pd.diagError()
