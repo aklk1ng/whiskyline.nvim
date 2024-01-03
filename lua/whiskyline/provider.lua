@@ -175,7 +175,7 @@ function pd.branch()
       return #res > 0 and icon .. res or ''
     end,
     name = 'gitbranch',
-    event = { 'User GitSignsUpdate' },
+    event = { 'BufEnter', 'BufNewFile', 'User GitSignsUpdate' },
   }
   result.attr = stl_attr('Include')
   result.attr.bold = true
