@@ -15,8 +15,6 @@ local function default()
   local comps = {
     p.fileinfo(),
     p.sep(),
-    p.filesize(),
-    p.sep(),
     p.lsp(),
     p.sep(),
     p.diagError(),
@@ -29,6 +27,8 @@ local function default()
     p.pad(),
 
     p.lnumcol(),
+    p.sep(),
+    p.filesize(),
     p.sep(),
     p.gitadd(),
     p.gitchange(),
@@ -70,7 +70,7 @@ local function render(comps, events, pieces)
       -- because setup use a timer to defer parse and render this will cause missing
       -- `BufEnter` event so add a safe check
 
-      local keys = { 3 }
+      local keys = { 14 }
       for _, idx in ipairs(keys) do
         if comps[idx] and #pieces[idx] == 0 then
           pieces[idx] = stl_format(comps[idx].name, comps[idx].stl(args))
