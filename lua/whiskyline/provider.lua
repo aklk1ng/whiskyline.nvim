@@ -37,11 +37,7 @@ function pd.fileinfo()
     event = { 'BufEnter' },
   }
 
-  if vim.fn.expand('%:e') == '' then
-    result.attr = stl_attr('Error')
-  else
-    result.attr = stl_attr('Normal')
-  end
+  result.attr = stl_attr('Normal')
 
   return result
 end
