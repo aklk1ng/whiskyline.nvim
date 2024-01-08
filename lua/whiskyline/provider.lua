@@ -178,7 +178,6 @@ function pd.branch()
     event = { 'BufEnter', 'BufNewFile', 'User GitSignsUpdate' },
   }
   result.attr = stl_attr('Include')
-  result.attr.bold = true
   return result
 end
 
