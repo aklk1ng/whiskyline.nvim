@@ -37,7 +37,7 @@ function pd.fileinfo()
     event = { 'BufEnter' },
   }
 
-  result.attr = stl_attr('Normal')
+  result.attr = stl_attr('CursorLineNr')
 
   return result
 end
