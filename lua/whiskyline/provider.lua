@@ -42,30 +42,6 @@ function pd.fileinfo()
   return result
 end
 
-function pd.filesize()
-  local function get_size()
-    local suffix = { 'b', 'k', 'M', 'G', 'T', 'P', 'E' }
-    local fsize = vim.fn.getfsize(vim.api.nvim_buf_get_name(0))
-    fsize = (fsize < 0 and 0) or fsize
-    local i = 1
-    while fsize > 1024 and i < #suffix do
-      fsize = fsize / 1024
-      i = i + 1
-    end
-    local format = i == 1 and '%d%s' or '%.1f%s'
-    return string.format(format, fsize, suffix[i])
-  end
-  local result = {
-    stl = get_size,
-    name = 'filesize',
-    event = { 'BufEnter', 'BufWritePost' },
-  }
-
-  result.attr = stl_attr('WarningMsg')
-
-  return result
-end
-
 function pd.search()
   local function res()
     if vim.v.hlsearch == 0 then
