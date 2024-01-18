@@ -35,9 +35,8 @@ function pd.fileinfo()
     stl = '%t%r%m',
     name = 'fileinfo',
     event = { 'BufEnter' },
+    attr = stl_attr('CursorLineNr'),
   }
-
-  result.attr = stl_attr('CursorLineNr')
 
   return result
 end
@@ -56,17 +55,21 @@ function pd.search()
     stl = res,
     name = 'search',
     event = { 'CursorHold' },
+    attr = stl_attr('Repeat', true)
   }
-  result.attr = stl_attr('Repeat', true)
 
   return result
 end
 
 function pd.lsp()
   local function lsp_stl(args)
-    local client = lsp.get_client_by_id(args.data.client_id)
+    local client = lsp.get_clients({ bufnr = args.buf })[1]
+    if not client then
+      return ''
+    end
+
     local msg = client and client.name or ''
-    if args.data.result then
+    if args.data and args.data.result then
       local val = args.data.result.value
       msg = val.title
         .. ' '
@@ -76,6 +79,8 @@ function pd.lsp()
         ---@diagnostic disable-next-line: need-check-nil
         msg = client.name
       end
+    elseif args.event == 'BufEnter' then
+      msg = client.name
     elseif args.event == 'LspDetach' then
       msg = ''
     end
@@ -85,10 +90,10 @@ function pd.lsp()
   local result = {
     stl = lsp_stl,
     name = 'Lsp',
-    event = { 'LspProgress', 'LspAttach', 'LspDetach' },
+    event = { 'LspProgress', 'LspAttach', 'LspDetach', 'BufEnter' },
+    attr = stl_attr('Function'),
   }
 
-  result.attr = stl_attr('Function')
   return result
 end
 
@@ -110,8 +115,8 @@ function pd.gitadd()
     end,
     name = 'gitadd',
     event = { 'User GitSignsUpdate' },
+    attr = stl_attr('DiffAdd'),
   }
-  result.attr = stl_attr('DiffAdd')
   return result
 end
 
@@ -123,9 +128,9 @@ function pd.gitchange()
     end,
     name = 'gitchange',
     event = { 'User GitSignsUpdate' },
+    attr = stl_attr('DiffChange'),
   }
 
-  result.attr = stl_attr('DiffChange')
   return result
 end
 
@@ -137,9 +142,9 @@ function pd.gitdelete()
     end,
     name = 'gitdelete',
     event = { 'User GitSignsUpdate' },
+    attr = stl_attr('DiffDelete'),
   }
 
-  result.attr = stl_attr('DiffDelete')
   return result
 end
 
@@ -152,8 +157,8 @@ function pd.branch()
     end,
     name = 'gitbranch',
     event = { 'BufEnter', 'BufNewFile', 'User GitSignsUpdate' },
+    attr = stl_attr('Include'),
   }
-  result.attr = stl_attr('Include')
   return result
 end
 
@@ -173,11 +178,12 @@ function pd.lnumcol()
     stl = '%-4.(%l:%c%)',
     name = 'linecol',
     event = { 'CursorHold' },
+    attr = stl_attr('Number'),
   }
 
-  result.attr = stl_attr('Number')
   return result
 end
+
 
 local function diagnostic_info(severity)
   if vim.diagnostic.is_disabled(0) then
@@ -201,8 +207,8 @@ function pd.diagError()
     end,
     name = 'diagError',
     event = { 'DiagnosticChanged', 'BufEnter' },
+    attr = stl_attr('DiagnosticError', true),
   }
-  result.attr = stl_attr('DiagnosticError', true)
   return result
 end
 
@@ -213,8 +219,8 @@ function pd.diagWarn()
     end,
     name = 'diagWarn',
     event = { 'DiagnosticChanged', 'BufEnter' },
+    attr = stl_attr('DiagnosticWarn', true),
   }
-  result.attr = stl_attr('DiagnosticWarn', true)
   return result
 end
 
@@ -225,8 +231,8 @@ function pd.diagInfo()
     end,
     name = 'diaginfo',
     event = { 'DiagnosticChanged', 'BufEnter' },
+    attr = stl_attr('DiagnosticInfo', true),
   }
-  result.attr = stl_attr('DiagnosticInfo', true)
   return result
 end
 
@@ -237,8 +243,8 @@ function pd.diagHint()
     end,
     name = 'diaghint',
     event = { 'DiagnosticChanged', 'BufEnter' },
+    attr = stl_attr('DiagnosticHint', true),
   }
-  result.attr = stl_attr('DiagnosticHint', true)
   return result
 end
 
