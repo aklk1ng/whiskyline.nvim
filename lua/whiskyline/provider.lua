@@ -10,11 +10,10 @@ function pd.stl_bg()
   return res.bg
 end
 
-local function stl_attr(group, trans)
+local function stl_attr(group)
   local color = api.nvim_get_hl(0, { name = group, link = false })
-  trans = trans or false
   return {
-    bg = trans and 'NONE' or pd.stl_bg(),
+    bg = pd.stl_bg(),
     fg = color.fg,
   }
 end
@@ -55,7 +54,7 @@ function pd.search()
     stl = res,
     name = 'search',
     event = { 'CursorHold' },
-    attr = stl_attr('Repeat', true)
+    attr = stl_attr('Repeat')
   }
 
   return result
@@ -207,7 +206,7 @@ function pd.diagError()
     end,
     name = 'diagError',
     event = { 'DiagnosticChanged', 'BufEnter' },
-    attr = stl_attr('DiagnosticError', true),
+    attr = stl_attr('DiagnosticError'),
   }
   return result
 end
@@ -219,7 +218,7 @@ function pd.diagWarn()
     end,
     name = 'diagWarn',
     event = { 'DiagnosticChanged', 'BufEnter' },
-    attr = stl_attr('DiagnosticWarn', true),
+    attr = stl_attr('DiagnosticWarn'),
   }
   return result
 end
@@ -231,7 +230,7 @@ function pd.diagInfo()
     end,
     name = 'diaginfo',
     event = { 'DiagnosticChanged', 'BufEnter' },
-    attr = stl_attr('DiagnosticInfo', true),
+    attr = stl_attr('DiagnosticInfo'),
   }
   return result
 end
@@ -243,7 +242,7 @@ function pd.diagHint()
     end,
     name = 'diaghint',
     event = { 'DiagnosticChanged', 'BufEnter' },
-    attr = stl_attr('DiagnosticHint', true),
+    attr = stl_attr('DiagnosticHint'),
   }
   return result
 end
