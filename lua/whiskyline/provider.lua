@@ -1,40 +1,17 @@
 local api, lsp = vim.api, vim.lsp
 local pd = {}
 
-function pd.stl_bg()
-  local res = api.nvim_get_hl(0, { name = 'StatusLine' })
-  if vim.tbl_isempty(res) then
-    vim.notify('[Whisky] colorschem missing StatusLine config')
-    return
-  end
-  return res.bg
-end
-
-local function stl_attr(group)
-  local color = api.nvim_get_hl(0, { name = group, link = false })
-  return {
-    bg = pd.stl_bg(),
-    fg = color.fg,
-  }
-end
-
 function pd.sep()
   return {
     stl = ' ',
-    name = 'sep',
-    attr = {
-      background = 'NONE',
-      foreground = 'NONE',
-    },
   }
 end
 
 function pd.fileinfo()
   local result = {
     stl = '%t%r%m',
-    name = 'fileinfo',
     event = { 'BufEnter' },
-    attr = stl_attr('CursorLineNr'),
+    attr = 'CursorLineNr',
   }
 
   return result
@@ -52,9 +29,8 @@ function pd.search()
   end
   local result = {
     stl = res,
-    name = 'search',
     event = { 'CursorHold' },
-    attr = stl_attr('Repeat')
+    attr = 'Repeat',
   }
 
   return result
@@ -88,46 +64,42 @@ function pd.lsp()
 
   local result = {
     stl = lsp_stl,
-    name = 'Lsp',
     event = { 'LspProgress', 'LspAttach', 'LspDetach', 'BufEnter' },
-    attr = stl_attr('Function'),
+    attr = 'Function',
   }
 
   return result
 end
 
-local function gitsigns_data(type)
-  if not vim.b.gitsigns_status_dict then
-    return ''
+local function gitsigns_data(bufnr, type)
+  local ok, dict = pcall(api.nvim_buf_get_var, bufnr, 'gitsigns_status_dict')
+  if not ok or vim.tbl_isempty(dict) or not dict[type] then
+    return 0
   end
 
-  local val = vim.b.gitsigns_status_dict[type]
-  val = (val == 0 or not val) and '' or tostring(val) .. (type == 'head' and '' or ' ')
-  return val
+  return dict[type]
 end
 
 function pd.gitadd()
   local result = {
-    stl = function()
-      local res = gitsigns_data('added')
-      return #res > 0 and '+' .. res or ''
+    stl = function(args)
+      local res = gitsigns_data(args.buf, 'added')
+      return res > 0 and '+' .. res or ''
     end,
-    name = 'gitadd',
     event = { 'User GitSignsUpdate' },
-    attr = stl_attr('DiffAdd'),
+    attr = 'DiffAdd',
   }
   return result
 end
 
 function pd.gitchange()
   local result = {
-    stl = function()
-      local res = gitsigns_data('changed')
-      return #res > 0 and '~' .. res or ''
+    stl = function(args)
+      local res = gitsigns_data(args.buf, 'changed')
+      return res > 0 and '~' .. res or ''
     end,
-    name = 'gitchange',
     event = { 'User GitSignsUpdate' },
-    attr = stl_attr('DiffChange'),
+    attr = 'DiffChange',
   }
 
   return result
@@ -135,13 +107,12 @@ end
 
 function pd.gitdelete()
   local result = {
-    stl = function()
-      local res = gitsigns_data('removed')
-      return #res > 0 and '-' .. res or ''
+    stl = function(args)
+      local res = gitsigns_data(args.buf, 'removed')
+      return res > 0 and '-' .. res or ''
     end,
-    name = 'gitdelete',
     event = { 'User GitSignsUpdate' },
-    attr = stl_attr('DiffDelete'),
+    attr = 'DiffDelete',
   }
 
   return result
@@ -149,14 +120,13 @@ end
 
 function pd.branch()
   local result = {
-    stl = function()
+    stl = function(args)
       local icon = ' '
-      local res = gitsigns_data('head')
-      return #res > 0 and icon .. res or ''
+      local res = gitsigns_data(args.buf, 'head')
+      return res and icon .. res or ''
     end,
-    name = 'gitbranch',
     event = { 'BufEnter', 'BufNewFile', 'User GitSignsUpdate' },
-    attr = stl_attr('Include'),
+    attr = 'Include',
   }
   return result
 end
@@ -164,25 +134,18 @@ end
 function pd.pad()
   return {
     stl = '%=',
-    name = 'pad',
-    attr = {
-      background = 'NONE',
-      foreground = 'NONE',
-    },
   }
 end
 
 function pd.lnumcol()
   local result = {
     stl = '%-4.(%l:%c%)',
-    name = 'linecol',
     event = { 'CursorHold' },
-    attr = stl_attr('Number'),
+    attr = 'Number',
   }
 
   return result
 end
-
 
 local function diagnostic_info(severity)
   if vim.diagnostic.is_disabled(0) then
@@ -204,9 +167,8 @@ function pd.diagError()
     stl = function()
       return diagnostic_info(1)
     end,
-    name = 'diagError',
     event = { 'DiagnosticChanged', 'BufEnter' },
-    attr = stl_attr('DiagnosticError'),
+    attr = 'DiagnosticError',
   }
   return result
 end
@@ -216,9 +178,8 @@ function pd.diagWarn()
     stl = function()
       return diagnostic_info(2)
     end,
-    name = 'diagWarn',
     event = { 'DiagnosticChanged', 'BufEnter' },
-    attr = stl_attr('DiagnosticWarn'),
+    attr = 'DiagnosticWarn',
   }
   return result
 end
@@ -228,9 +189,8 @@ function pd.diagInfo()
     stl = function()
       return diagnostic_info(3)
     end,
-    name = 'diaginfo',
     event = { 'DiagnosticChanged', 'BufEnter' },
-    attr = stl_attr('DiagnosticInfo'),
+    attr = 'DiagnosticInfo',
   }
   return result
 end
@@ -240,9 +200,8 @@ function pd.diagHint()
     stl = function()
       return diagnostic_info(4)
     end,
-    name = 'diaghint',
     event = { 'DiagnosticChanged', 'BufEnter' },
-    attr = stl_attr('DiagnosticHint'),
+    attr = 'DiagnosticHint',
   }
   return result
 end

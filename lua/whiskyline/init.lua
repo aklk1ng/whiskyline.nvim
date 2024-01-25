@@ -2,11 +2,7 @@ local co, api = coroutine, vim.api
 local whk = {}
 
 local function stl_format(name, val)
-  return '%#Whisky' .. name .. '#' .. val .. '%*'
-end
-
-local function stl_hl(name, attr)
-  api.nvim_set_hl(0, 'Whisky' .. name, attr)
+  return '%#' .. (name or 'StatusLine') .. '#' .. val .. '%*'
 end
 
 local function default()
@@ -24,7 +20,6 @@ local function default()
     p.search(),
 
     p.pad(),
-    p.pad(),
 
     p.lnumcol(),
     p.sep(),
@@ -38,19 +33,15 @@ local function default()
     .iter(ipairs(comps))
     :map(function(key, item)
       if type(item.stl) == 'string' then
-        pieces[#pieces + 1] = stl_format(item.name, item.stl)
+        pieces[#pieces + 1] = stl_format(item.attr, item.stl)
       else
-        pieces[#pieces + 1] = item.default and stl_format(item.name, item.default) or ''
+        pieces[#pieces + 1] = item.default and stl_format(item.attr, item.default) or ''
         for _, event in ipairs({ unpack(item.event or {}) }) do
           if not e[event] then
             e[event] = {}
           end
           e[event][#e[event] + 1] = key
         end
-      end
-
-      if item.attr and item.name then
-        stl_hl(item.name, item.attr)
       end
     end)
     :totable()
@@ -62,7 +53,7 @@ local function render(comps, events, pieces)
     while true do
       local event = args.event == 'User' and args.event .. ' ' .. args.match or args.event
       for _, idx in ipairs(events[event]) do
-        pieces[idx] = stl_format(comps[idx].name, comps[idx].stl(args))
+        pieces[idx] = stl_format(comps[idx].attr, comps[idx].stl(args))
       end
 
       -- because setup use a timer to defer parse and render this will cause missing
